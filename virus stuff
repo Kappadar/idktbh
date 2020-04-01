@@ -1,0 +1,139 @@
+import math
+class Position:
+    def __init__(self,x,y,speed):
+        if speed < 0:
+            raise ValueError('Speed cannot be negative')
+        self.x = x
+        self.y = y
+        self.dx = 0 #dx and dy are destinations
+        self.dy = 0 
+        self.speed = speed
+
+    def moveTo(self,dx,dy):
+        self.dx = dx
+        self.dy = dy
+        
+    def tick(self):
+        if abs(self.x - self.dx) < self.speed:
+            self.x = self.dx
+        else:
+            if self.dx > self.x:
+                self.x = self.x + self.speed
+            else:
+                self.x = self.x - self.speed
+        if abs(self.y - self.dy) < self.speed:
+            self.y = self.dy
+        else:
+            if self.dy > self.y:
+                self.y = self.y + self.speed
+            else:
+                self.y = self.y - self.speed #I keep seeing self.y as selfy lmao
+            
+            
+        
+    def distance(self, other):
+        distans = math.sqrt((other.x - self.x)**2 + (other.y - self.y)**2)
+        return distans
+class VirusesInsufficient(Exception):
+    pass
+class OutOfRange(Exception):
+    pass
+
+class Cell(Position): #Cells class inheriting Position class
+    def __init__(self,X,Y,colour,attackRange):
+
+        
+        colourlist = ['Blue','Green','Red','Cyan','Magenta','Yellow','Black','White','Purple']
+        if colour.upper() in (cooler.upper() for cooler in colourlist):
+            pass
+        else:
+            raise ValueError('Must be a valid colour')     
+        self.colour = colour #####
+        
+        if colour == 'None':
+            self.viruses = 0
+        else:
+            self.viruses = 5
+        
+        self.defense = 10 ####
+        self.maxDefense = 10 ####
+        self.attackRange = attackRange ######
+            
+        self.mood = "Happy" #####
+        if self.mood == "Happy":
+            self.speed = 0.1
+        if self.mood == "Angry":
+            self.speed = 0.2
+        if self.mood == "Stoic":
+            self.speed = 0.05
+        if self.mood == "Busy":
+            self.speed = 0
+        #idk if you set the speed by self.speed 
+        
+        super().__init__(X,Y,self.speed) #I am calling parents init, and now I have x,y,dx,dy, and speed
+        
+    def tick(self):
+        if self.mood == "Happy":
+            self.viruses = self.viruses + 3
+        if self.mood == "Busy":
+            self.viruses = self.viruses + 8
+        if self.mood == "Stoic":
+            self.viruses = self.viruses + 6
+        if self.mood == "Angry":
+            self.viruses = self.viruses + 6
+        if self.maxDefense != self.defense:
+            self.defense = self.defense + 1
+        super().tick() #Call parents tick
+        
+    
+    def changeMood(self,newMood):
+        moodList = ['Busy','Stoic','Angry'] #The cell cannot change to a Happy mood??
+        if newMood in moodList:
+            if self.viruses >= 20:
+                self.viruses = self.viruses - 20
+                self.mood = newMood
+                if self.mood == "Stoic":
+                    self.maxDefense = 30
+                    self.speed = 0.05
+                if self.mood == "Angry":
+                    self.maxDefense = 5
+                    if self.defense > self.maxDefense:
+                        self.defense = self.maxDefense
+                    self.speed = 0.2
+                if self.mood == "Busy":
+                    self.maxDefense = 5
+                    if self.defense > self.maxDefense:
+                        self.defense = self.maxDefense
+                    self.speed = 0
+            else: 
+                raise VirusesInsufficient('Not enough viruses fam')
+                pass
+        else:
+            raise ValueError
+            pass
+    def attack(self,other): #Takes other of type CEll as an argument, idk what that means
+        
+        if (abs(self.x - other.x) <= self.attackRange) and (abs(self.y - other.y) <= self.attackRange):
+            BAV = self.viruses 
+            if other.defense > BAV:
+                other.defense = other.defense - BAV
+            else:
+                other.defense = 0
+                
+            AAV = BAV - other.defense
+            
+            if AAV > other.viruses:
+                other.colour = self.colour
+                self.viruses = AAV - other.viruses  ##I am unsure about this. idk if self.viruses are reduced or other.viruses
+            if AAV < other.viruses:
+                other.viruses = other.viruses - AAV
+            if other.viruses == AAV:
+                other.colour = "None"
+            self.viruses = 0
+        else:
+            raise OutOfRange('Ur out of range buddy')
+    def __eq__(self,other):
+        if ((self.X and self.Y) == (other.X and other.Y)) and (self.viruses == other.viruses) and (self.defense == other.defense) and (self.mood == other.mood):
+            self = other
+            
+        
